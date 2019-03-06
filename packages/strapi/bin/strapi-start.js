@@ -53,7 +53,7 @@ module.exports = function(appPath = '') {
       'config',
       'environments',
       'development',
-      'server.json',
+      'server.json'
     ));
 
     if (process.env.NODE_ENV === 'development' && _.get(server, 'autoReload.enabled') === true) {
@@ -78,9 +78,9 @@ module.exports = function(appPath = '') {
             _.startsWith(file, '.') ||
             file === 'node_modules' ||
             file === 'plugins.json' ||
-            file === 'index.html'   ||
-            file === 'public'       ||
-            file === 'cypress'      ||
+            file === 'index.html' ||
+            file === 'public' ||
+            file === 'cypress' ||
             _.endsWith(file, '.db')
           ) {
             return;
@@ -95,21 +95,25 @@ module.exports = function(appPath = '') {
       setFilesToWatch(appPath);
 
       if (cluster.isMaster) {
+        cluster.on('exit', worker => {
+          console.log(`Worker ${worker.process.pid} exited`);
+        });
+
         cluster.on('message', (worker, message) => {
           switch (message) {
             case 'reload':
-              strapi.log.info('The server is restarting\n');
-
-              _.forEach(cluster.workers, worker => worker.send('isKilled'));
+              // strapi.log.info('The server is restarting\n');
+              console.log('reload');
+              worker.send('isKilled');
               break;
             case 'kill':
-              _.forEach(cluster.workers, worker => worker.kill());
-
+              console.log('kill');
+              worker.kill();
               cluster.fork();
               break;
             case 'stop':
-              _.forEach(cluster.workers, worker => worker.kill());
-
+              console.log('stop');
+              worker.kill();
               process.exit(0);
               break;
             default:
@@ -121,9 +125,11 @@ module.exports = function(appPath = '') {
       }
 
       if (cluster.isWorker) {
+        console.log(process.pid);
         process.on('message', message => {
           switch (message) {
             case 'isKilled':
+              console.log('isKilled');
               strapi.server.destroy(() => {
                 process.send('kill');
               });
@@ -137,7 +143,7 @@ module.exports = function(appPath = '') {
           {
             appPath,
           },
-          afterwards,
+          afterwards
         );
       } else {
         return;
@@ -151,7 +157,7 @@ module.exports = function(appPath = '') {
       {
         appPath,
       },
-      afterwards,
+      afterwards
     );
   } catch (e) {
     logger.error(e);
@@ -160,6 +166,7 @@ module.exports = function(appPath = '') {
 };
 
 function afterwards(err, strapi) {
+  console.log(err);
   if (err) {
     logger.error(err.stack ? err.stack : err);
 

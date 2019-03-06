@@ -97,24 +97,38 @@ class Strapi extends EventEmitter {
 
   async start(config = {}, cb) {
     try {
+      console.log('1');
       this.config = assign(this.config, config);
 
+      console.log('2');
       // Emit starting event.
       this.emit('server:starting');
 
+      console.log('3');
       // Load the app.
       await this.load();
+
+      console.log('4');
       // Run bootstrap function.
       await this.bootstrap();
+
+      console.log('5');
       // Freeze object.
       await this.freeze();
+
+      console.log('6');
       // Update source admin.
       await admin.call(this);
+
+      console.log('7');
       // Init first start
       utils.init.call(this);
+
+      console.log('8');
       // Launch server.
       this.server.listen(this.config.port, async (err) => {
         if (err) {
+          console.log(err);
           this.log.debug(`⚠️ Server wasn't able to start properly.`);
           this.log.error(err);
           return this.stop();
